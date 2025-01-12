@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "minecraft-data": "^3.80.0"
+  },
+  "type": "module"
+}
