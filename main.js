@@ -25,6 +25,7 @@ async function generateMultiagentTasks() {
         // Determine if this task should have missing resources (20% chance)
         const hasMissingResources = Math.random() < 0.2;
         let missingResourcesPercentage = 0;
+        let missingResources = {};
         
         // Create initial inventory by distributing resources between agents
         const initialInventory = {
@@ -33,25 +34,64 @@ async function generateMultiagentTasks() {
         };
         
         for (const [resource, count] of Object.entries(requirements)) {
+            let availableCount = count;
+            
             if (hasMissingResources) {
                 // Calculate missing resources (0-40% of total)
-                missingResourcesPercentage = Math.random() * 0.4;
-                const availableCount = Math.floor(count * (1 - missingResourcesPercentage));
-                
-                // Distribute available resources randomly between agents
-                const andyCount = Math.floor(Math.random() * (availableCount + 1));
-                const randyCount = availableCount - andyCount;
-                
-                if (andyCount > 0) initialInventory.andy[resource] = andyCount;
-                if (randyCount > 0) initialInventory.randy[resource] = randyCount;
-            } else {
-                // Distribute all resources randomly between agents
-                const andyCount = Math.floor(Math.random() * (count + 1));
-                const randyCount = count - andyCount;
-                
-                if (andyCount > 0) initialInventory.andy[resource] = andyCount;
-                if (randyCount > 0) initialInventory.randy[resource] = randyCount;
+                const missingPercent = Math.random() * 0.4;
+                const missingCount = Math.floor(count * missingPercent);
+                if (missingCount > 0) {
+                    missingResources[resource] = missingCount;
+                    availableCount = count - missingCount;
+                }
             }
+            
+            // Generate a random distribution percentage between 40% and 60%
+            const andyPercentage = 0.4 + (Math.random() * 0.2); // Random between 0.4 and 0.6
+            
+            // Calculate counts based on percentage
+            let andyCount = Math.floor(availableCount * andyPercentage);
+            let randyCount = availableCount - andyCount;
+            
+            // Ensure each agent gets at least one item if there are enough resources
+            if (availableCount >= 2) {
+                if (andyCount === 0) {
+                    andyCount = 1;
+                    randyCount = availableCount - 1;
+                } else if (randyCount === 0) {
+                    randyCount = 1;
+                    andyCount = availableCount - 1;
+                }
+            }
+            
+            if (andyCount > 0) initialInventory.andy[resource] = andyCount;
+            if (randyCount > 0) initialInventory.randy[resource] = randyCount;
+        }
+        
+        // Calculate total missing resources percentage
+        if (hasMissingResources && Object.keys(missingResources).length > 0) {
+            let totalRequired = 0;
+            let totalMissing = 0;
+            
+            for (const [resource, count] of Object.entries(requirements)) {
+                totalRequired += count;
+                if (missingResources[resource]) {
+                    totalMissing += missingResources[resource];
+                }
+            }
+            
+            missingResourcesPercentage = Math.round((totalMissing / totalRequired) * 100);
+        }
+        
+        // Determine blocked access to crafting plan
+        let blockedAccess = [];
+        const accessRoll = Math.random();
+        if (accessRoll > 0.7 && accessRoll <= 0.9) {
+            // 20% chance one agent is blocked
+            blockedAccess = [Math.random() < 0.5 ? "andy" : "randy"];
+        } else if (accessRoll > 0.9) {
+            // 10% chance both agents are blocked
+            blockedAccess = ["andy", "randy"];
         }
         
         // Calculate timeout based on depth and missing resources
@@ -69,7 +109,9 @@ async function generateMultiagentTasks() {
             type: "techtree",
             chosen_depth: chosenDepth,
             timeout: timeout,
-            missing_resources: Math.round(missingResourcesPercentage * 100)
+            missing_resources_percentage: missingResourcesPercentage,
+            missing_resources: missingResources,
+            blocked_access_to_craftingPlan: blockedAccess
         };
     }
     
@@ -86,7 +128,6 @@ async function generateMultiagentTasks() {
 
     return tasks;
 }
-
 // Execute the function
 const tasks = await generateMultiagentTasks().catch(console.error);
 
@@ -174,6 +215,11 @@ function filterTasksWithAchievableBaseItems(tasks, achievableBaseItems) {
     return filteredTasks;
 }
 
+
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 1));
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 2));
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 3));
+
 const filteredTasks = filterTasksWithAchievableBaseItems(tasks, achievableBaseItems);
 console.log('Filtered tasks:', filteredTasks);
 
@@ -191,13 +237,13 @@ console.log(`Filtered tasks saved to ${filteredTasksFilePath}`);
 // console.log("Recipes for black_wool:", mc.getItemCraftingRecipes("black_wool"));
 
 // console.log("Recipes for crafting_table:", mc.getItemCraftingRecipes("crafting_table"));
-// console.log("Recipes for furnace:", mc.getItemCraftingRecipes("wooden_pickaxe"));
+// console.log("Recipes for furnace:", mc.getItemCraftingRecipes("jungle_sign"));
 // console.log("Recipes for furnace:", mc.getItemCraftingRecipes("furnace"));
 
 
 // console.log("Printing detailed crafting plan for some items");
-// console.log(mc.getDetailedCraftingPlan("wooden_pickaxe", 1));
-// console.log(mc.getDetailedCraftingPlan("wooden_pickaxe", 2));
+// console.log(mc.getDetailedCraftingPlan("jungle_sign", 1));
+// console.log(mc.getDetailedCraftingPlan("jungle_sign", 2));
 // console.log(mc.getDetailedCraftingPlan("compass", 1));
 // console.log(mc.getDetailedCraftingPlan("warped_fence", 1));
 // console.log(mc.getDetailedCraftingPlan("warped_fence", 2));
@@ -247,8 +293,8 @@ console.log(`Filtered tasks saved to ${filteredTasksFilePath}`);
 
 // // console.log('Trying calling the function with current_inventory');
 
-// // console.log(mc.getDetailedCraftingPlan("wooden_pickaxe", 1, {"oak_log": 2, "stick": 2}));
-// // console.log(mc.getDetailedCraftingPlan("wooden_pickaxe", 2));
+// // console.log(mc.getDetailedCraftingPlan("jungle_sign", 1, {"oak_log": 2, "stick": 2}));
+// // console.log(mc.getDetailedCraftingPlan("jungle_sign", 2));
 // // console.log(mc.getDetailedCraftingPlan("compass", 1, {"iron_ingot": 2}));
 // // console.log(mc.getDetailedCraftingPlan("warped_fence", 1, {"diamond": 1, "stick": 1}));
 // // console.log(mc.getDetailedCraftingPlan("diamond_block", 1, {"diamond": 8}));
@@ -272,5 +318,5 @@ console.log(`Filtered tasks saved to ${filteredTasksFilePath}`);
 
 // // console.log(mc.getDetailedCraftingPlan({},"diamond_block",1).response);
 // // 
-// // console.log(mc.getDetailedCraftingPlan({},"wooden_pickaxe",1).response);
-// // console.log(mc.getDetailedCraftingPlan({},"wooden_pickaxe",2).response);
+// // console.log(mc.getDetailedCraftingPlan({},"jungle_sign",1).response);
+// // console.log(mc.getDetailedCraftingPlan({},"jungle_sign",2).response);
