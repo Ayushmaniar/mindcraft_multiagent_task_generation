@@ -131,7 +131,7 @@ async function generateMultiagentTasks() {
 // Execute the function
 const tasks = await generateMultiagentTasks().catch(console.error);
 
-const achievableBaseItems = [
+const AchievableItems = [
     "quartz",
     "cobblestone",
     "cobbled_deepslate",
@@ -194,20 +194,35 @@ const achievableBaseItems = [
     "rose_bush",
     "red_tulip",
     "egg",
-    "pumpkin"
+    "pumpkin",
+    'coal',
+    'wheat',
+    'raw_iron',
+    'raw_gold',
+    'redstone',
+    'blue_wool',
+    'packed_mud',
+    'raw_copper',
+    'iron_ingot',
+    'dried_kelp',
+    'gold_ingot',
+    'slime_ball',
+    'black_wool',
+    'copper_ingot',
+    'lapis_lazuli'
 ];
 
 // console.log('Tasks:', tasks);   
-function filterTasksWithAchievableBaseItems(tasks, achievableBaseItems) {
+function filterTasksWithAchievableItems(tasks, AchievableItems) {
     const filteredTasks = {};
     
     for (const [taskName, task] of Object.entries(tasks)) {
         // console.log('Task:', taskName);
-        const allResources = Object.keys(task.initial_inventory.andy).concat(Object.keys(task.initial_inventory.randy));
-        const allResourcesInAchievableBaseItems = allResources.every(resource => achievableBaseItems.includes(resource));
+        const allResources = Object.keys(task.initial_inventory.andy).concat(Object.keys(task.initial_inventory.randy)).concat(Object.keys(task.missing_resources));
+        const allResourcesInAchievableItems = allResources.every(resource => AchievableItems.includes(resource));
 
         // Filter tasks with achievable base items and chosen depth of 2 or 3
-        if (allResourcesInAchievableBaseItems && (task.chosen_depth >= 2)) {
+        if (allResourcesInAchievableItems && (task.chosen_depth >= 2)) {
             filteredTasks[taskName] = task;
         }
     }
@@ -220,7 +235,7 @@ console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 1));
 console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 2));
 console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 3));
 
-const filteredTasks = filterTasksWithAchievableBaseItems(tasks, achievableBaseItems);
+const filteredTasks = filterTasksWithAchievableItems(tasks, AchievableItems);
 console.log('Filtered tasks:', filteredTasks);
 
 // Save filtered tasks to file
