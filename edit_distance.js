@@ -39,68 +39,39 @@ mc.craftItem("coal_block", 1, {}, {});
 const interestingCraftableItems = items.filter(item => mc.craftItem(item.name, 1, {}, {}).steps.length > 1);
 console.log(interestingCraftableItems.length);
 
-function trainTestSplit(craftableItems, threshold) {
-    /**
-     * Splits the possible craftable items into train and test sets based on the number of steps in common between their crafting plans.    
-     * @param {Array} craftableItems - An array of craftable items.
-     * @param {number} threshold - The threshold for the number of steps in common.
-     */
-    const plans = craftableItems.map(item => mc.craftItem(item.name, 1, {}, {}));
-    let commonSteps = [];
+function selectColumn(array, columnIndex) {
+    return array.map(row => row[columnIndex]);
+}
+
+function trainTestSplit(craftableItems, train_suffixes, test_suffixes) {
+    const train = [];
+    const test = [];
     for (let i = 0; i < craftableItems.length; i++) {
-        let sublist = []
-        for (let j = 0; j < craftableItems.length; j++) {
-            let steps = stepsInCommon(plans[i], plans[j]);
-            if (i === j) {
-                steps = 0;
-            }
-            sublist.push({
-                item0: craftableItems[i].name,
-                item1: craftableItems[j].name,
-                commonSteps: steps
-            });
-        }
-        commonSteps.push(sublist);
-    }
+        let item_name = craftableItems[i].name;
 
-    const train = [craftableItems[0]];
-    const test = [craftableItems[1]];
-
-    const trainCommonSteps = commonSteps[0];
-    const testCommonSteps = commonSteps[1];
-
-    for (let i = 2; i < craftableItems.length; i++) {
-        if (test.length <= train.length) { 
-            let item_name = craftableItems[i].name;
-            const i_column = testCommonSteps.filter(item => item.item0 === item_name || item.item1 === item_name);
-            const i_steps = i_column.map(item => item.commonSteps);
-            const maxSteps = Math.max(i_steps);
-            if (maxSteps >= threshold) {
-                train.push(craftableItems[i]);
-                trainCommonSteps.push(commonSteps[i])
-            } else {
-                test.push(craftableItems[i]);
-                testCommonSteps.push(commonSteps[i])
-            }
-            
+        if (train_suffixes.some(suffix => item_name.endsWith(suffix))) {
+            train.push(craftableItems[i]);
+        } else if (test_suffixes.some(suffix => item_name.endsWith(suffix))) {
+            test.push(craftableItems[i]);
         } else {
-            let item_name = craftableItems[i].name;
-            const i_column = trainCommonSteps.filter(item => item.item0 === item_name || item.item1 === item_name);
-            const i_steps = i_column.map(item => item.commonSteps);
-            const maxSteps = Math.max(i_steps);
-            if (maxSteps >= threshold) {
-                test.push(craftableItems[i]);
-                testCommonSteps.push(commonSteps[i])
-            } else {
+            const randomNumber = Math.floor(Math.random() * 11);
+            if (randomNumber % 2 === 0) {
                 train.push(craftableItems[i]);
-                trainCommonSteps.push(commonSteps[i])
+            } else {
+                test.push(craftableItems[i]);
             }
         }
     }
+
     return {
         "train": train, 
-        "test": test};
+        "test": test
+    };
+
 }
+
+const train_suffixes = ["pickaxe", "axe", "hoe", "wall", "sword"];
+const test_suffixes = ["minecart", "shovel", "dye", "bed", "wool"];
 
 function avg_std_plan_lengths(items) {
     const plan_lengths = [];
@@ -117,7 +88,7 @@ function avg_std_plan_lengths(items) {
     };
 }
 
-const obj = trainTestSplit(interestingCraftableItems, 1);
+const obj = trainTestSplit(interestingCraftableItems, train_suffixes, test_suffixes);
 const train_items = obj["train"];
 
 const avg_std_train = avg_std_plan_lengths(train_items);
@@ -164,16 +135,127 @@ const dev_tasks = makeTasks(dev_items);
 const test_tasks = makeTasks(test_items);
 
 console.log("Number of train tasks: ", Object.keys(train_tasks).length);
+console.log("Number of dev tasks: ", Object.keys(dev_tasks).length);
 console.log("Number of test tasks: ", Object.keys(test_tasks).length);
+
+console.log("Average and std depth for train tasks: ", avg_and_std_depth(train_tasks));
+console.log("Average and std depth for dev tasks: ", avg_and_std_depth(dev_tasks));
+console.log("Average and std depth for test tasks: ", avg_and_std_depth(test_tasks));
+console.log("Number of tasks based on depth for train tasks: ", get_num_tasks_based_depth(train_tasks));
+console.log("Number of tasks based on depth for dev tasks: ", get_num_tasks_based_depth(dev_tasks));
+console.log("Number of tasks based on depth for test tasks: ", get_num_tasks_based_depth(test_tasks));
+console.log("Number of missing resources for train tasks: ", check_num_missing_resources(train_tasks));
+console.log("Number of missing resources for dev tasks: ", check_num_missing_resources(dev_tasks));
+console.log("Number of missing resources for test tasks: ", check_num_missing_resources(test_tasks));
+
+const trimmed_train_tasks = trim_down_tasks(train_tasks, 200);
+const trimmed_dev_tasks = trim_down_tasks(dev_tasks);
+const trimmed_test_tasks = trim_down_tasks(test_tasks);
+
+console.log("Number of train tasks after trimming: ", Object.keys(trimmed_train_tasks).length);
+console.log("Number of dev tasks after trimming: ", Object.keys(trimmed_dev_tasks).length);
+console.log("Number of test tasks after trimming: ", Object.keys(trimmed_test_tasks).length);
+
+console.log("Average and std depth for train tasks after trimming: ", avg_and_std_depth(trimmed_train_tasks));
+console.log("Average and std depth for dev tasks after trimming: ", avg_and_std_depth(trimmed_dev_tasks));
+console.log("Average and std depth for test tasks after trimming: ", avg_and_std_depth(trimmed_test_tasks));
+console.log("Number of tasks based on depth for train tasks after trimming: ", get_num_tasks_based_depth(trimmed_train_tasks));
+console.log("Number of tasks based on depth for dev tasks after trimming: ", get_num_tasks_based_depth(trimmed_dev_tasks));
+console.log("Number of tasks based on depth for test tasks after trimming: ", get_num_tasks_based_depth(trimmed_test_tasks));
+console.log("Number of missing resources for train tasks after trimming: ", check_num_missing_resources(trimmed_train_tasks));
+console.log("Number of missing resources for dev tasks after trimming: ", check_num_missing_resources(trimmed_dev_tasks));
+console.log("Number of missing resources for test tasks after trimming: ", check_num_missing_resources(trimmed_test_tasks));
 
 const train_save_path = "./train_tasks.json";
 const dev_save_path = "./dev_tasks.json";
 const test_save_path = "./test_tasks.json";
 
-fs.writeFileSync(train_save_path, JSON.stringify(train_tasks, null, 2));
-fs.writeFileSync(dev_save_path, JSON.stringify(dev_tasks, null, 2));
-fs.writeFileSync(test_save_path, JSON.stringify(test_tasks, null, 2));
+fs.writeFileSync(train_save_path, JSON.stringify(trimmed_train_tasks, null, 2));
+fs.writeFileSync(dev_save_path, JSON.stringify(trimmed_dev_tasks, null, 2));
+fs.writeFileSync(test_save_path, JSON.stringify(trimmed_test_tasks, null, 2));
 
+function check_num_missing_resources(tasks) {
+    const num_missing_resources = {};
+    for (const task_name of Object.keys(tasks)) {
+        const task = tasks[task_name];
+        const missing_items = task.missing_items;
+        if (num_missing_resources[missing_items.length]) {
+            num_missing_resources[missing_items.length]++;
+        } else {
+            num_missing_resources[missing_items.length] = 1;
+        }
+    }
+    return num_missing_resources;
+}
+
+
+function trim_down_tasks(tasks, num_tasks = 100) {
+    const trimmed_tasks = {};
+    const tasks_of_depth = get_tasks_of_depth(tasks, 0);
+    const tasks_of_depth_1 = get_tasks_of_depth(tasks, 1);
+
+    const shuffled_tasks_of_depth = shuffleObject(tasks_of_depth);
+    const shuffled_tasks_of_depth_1 = shuffleObject(tasks_of_depth_1);
+
+    for (let i = 0; i < num_tasks; i++) {
+        const task_name_0 = Object.keys(shuffled_tasks_of_depth)[i];
+        trimmed_tasks[task_name_0] = shuffled_tasks_of_depth[task_name_0];
+        const task_name_1 = Object.keys(shuffled_tasks_of_depth_1)[i];
+        trimmed_tasks[task_name_1] = shuffled_tasks_of_depth_1[task_name_1];
+    }
+
+    for (const task_name of Object.keys(tasks)) {
+        let task = tasks[task_name];
+        if (task.depth > 1) {
+            trimmed_tasks[task_name] = task;
+        }
+    }
+    return trimmed_tasks;
+}
+
+function shuffleObject(obj) {
+    const shuffledArray = Object.entries(obj).sort(() => Math.random() - 0.5);
+    return Object.fromEntries(shuffledArray);
+}
+
+function get_tasks_of_depth(tasks, depth) {
+    const tasks_of_depth = {};
+    
+    for (const task_name of Object.keys(tasks)) {
+        let task = tasks[task_name];
+        if (task.depth === depth) {
+            tasks_of_depth[task_name] = task;
+        }
+    }
+    
+    return tasks_of_depth;
+}
+
+function get_num_tasks_based_depth(tasks) {
+    const depth_counts = {};
+    for (const task of Object.values(tasks)) {
+        if (depth_counts[task.depth]) {
+            depth_counts[task.depth]++;
+        } else {
+            depth_counts[task.depth] = 1;
+        }
+    }
+    return depth_counts;
+}
+
+function avg_and_std_depth(tasks) {
+    const depths = [];
+    for (const task of Object.values(tasks)) {
+        depths.push(task.depth);
+    }
+    const avg_depth = depths.reduce((a, b) => a + b, 0) / depths.length;
+    const std_depth = Math.sqrt(depths.map(x =>
+        Math.pow(x - avg_depth, 2)).reduce((a, b) => a + b, 0) / depths.length);
+    return {
+        "avg": avg_depth,
+        "std": std_depth
+    };
+}
 
 function makeTasks(items) {
     const tasks = {};
@@ -276,7 +358,7 @@ function makeTasks(items) {
                         max_depth: depth,
                         depth: i, 
                         timeout: timeout,
-                        blocked_actions: blocked_actions_options[i],
+                        blocked_actions: blocked_actions_options[j],
                         missing_items: missing_items
                     }
                 }
