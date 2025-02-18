@@ -36,10 +36,15 @@ function stepsInCommon(plan0, plan1) {
 
 console.log("about to call craftItem");
 mc.craftItem("coal_block", 1, {}, {});
-const craftableItems = items.filter(item => mc.craftItem(item.name, 1, {}, {}).steps.length > 0);
-console.log(craftableItems.length);
+const interestingCraftableItems = items.filter(item => mc.craftItem(item.name, 1, {}, {}).steps.length > 1);
+console.log(interestingCraftableItems.length);
 
 function trainTestSplit(craftableItems, threshold) {
+    /**
+     * Splits the possible craftable items into train and test sets based on the number of steps in common between their crafting plans.    
+     * @param {Array} craftableItems - An array of craftable items.
+     * @param {number} threshold - The threshold for the number of steps in common.
+     */
     const plans = craftableItems.map(item => mc.craftItem(item.name, 1, {}, {}));
     let commonSteps = [];
     for (let i = 0; i < craftableItems.length; i++) {
@@ -70,7 +75,7 @@ function trainTestSplit(craftableItems, threshold) {
             const i_column = testCommonSteps.filter(item => item.item0 === item_name || item.item1 === item_name);
             const i_steps = i_column.map(item => item.commonSteps);
             const maxSteps = Math.max(i_steps);
-            if (maxSteps > threshold) {
+            if (maxSteps >= threshold) {
                 train.push(craftableItems[i]);
                 trainCommonSteps.push(commonSteps[i])
             } else {
@@ -83,7 +88,7 @@ function trainTestSplit(craftableItems, threshold) {
             const i_column = trainCommonSteps.filter(item => item.item0 === item_name || item.item1 === item_name);
             const i_steps = i_column.map(item => item.commonSteps);
             const maxSteps = Math.max(i_steps);
-            if (maxSteps > threshold) {
+            if (maxSteps >= threshold) {
                 test.push(craftableItems[i]);
                 testCommonSteps.push(commonSteps[i])
             } else {
@@ -112,7 +117,7 @@ function avg_std_plan_lengths(items) {
     };
 }
 
-const obj = trainTestSplit(craftableItems, 2);
+const obj = trainTestSplit(interestingCraftableItems, 1);
 const train_items = obj["train"];
 
 const avg_std_train = avg_std_plan_lengths(train_items);
@@ -129,13 +134,22 @@ for (let i = shuffledTestItems.length - 1; i > 0; i--) {
 const dev_items = shuffledTestItems.slice(0, Math.floor(shuffledTestItems.length / 2));
 const test_items = shuffledTestItems.slice(Math.floor(shuffledTestItems.length / 2));
 
-
-console.log("Number of test tasks: ", test_items.length);
-
-
 console.log("Number of train items: ", train_items.length);
 console.log("Number of dev items: ", dev_items.length);
 console.log("Number of test items: ", test_items.length);
+
+const train_items_string = train_items.map(item => item.name).join('\n');
+const dev_items_string = dev_items.map(item => item.name).join('\n');
+const test_items_string = test_items.map(item => item.name).join('\n');
+
+const train_items_save_path = "./train_items.txt";
+const dev_items_save_path = "./dev_items.txt";
+const test_items_save_path = "./test_items.txt";
+
+fs.writeFileSync(train_items_save_path, train_items_string);
+fs.writeFileSync(dev_items_save_path, dev_items_string);
+fs.writeFileSync(test_items_save_path, test_items_string);
+
 
 console.log("Average and std plan length for train items: ", avg_std_plan_lengths(train_items));
 console.log("Average and std plan length for dev items: ", avg_std_plan_lengths(dev_items));
