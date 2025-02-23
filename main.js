@@ -241,22 +241,22 @@ function filterTasksWithAchievableItems(tasks, AchievableItems) {
     
     for (const [taskName, task] of Object.entries(tasks)) {
         // console.log('Task:', taskName);
-        const missingResources = Object.keys(task.missing_resources);
-        const missingResourcesInAchievableItems = missingResources.every(resource => AchievableItems.includes(resource));
+        const allResources = Object.keys(task.initial_inventory.andy).concat(Object.keys(task.initial_inventory.randy)).concat(Object.keys(task.missing_resources));
+        const allResourcesInAchievableItems = allResources.every(resource => AchievableItems.includes(resource));
 
         // Filter tasks with achievable base items and chosen depth of 2 or 3
-        if (missingResourcesInAchievableItems && (task.chosen_depth >= 2)) {
+        if (allResourcesInAchievableItems && (task.chosen_depth >= 2)) {
             filteredTasks[taskName] = task;
         }
-
     }
 
     return filteredTasks;
 }
 
-// console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 1));
-// console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 2));
-// console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 3));
+
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 1));
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 2));
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 3));
 
 const filteredTasks = filterTasksWithAchievableItems(tasks, AchievableItems);
 console.log('Filtered tasks:', filteredTasks);
