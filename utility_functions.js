@@ -104,11 +104,9 @@ export function getItemCraftingRecipes(itemName) {
 }
 
 
-let loopingItems = new Set();
 
-export function initializeLoopingItems() {
-
-    loopingItems = new Set(['coal',
+const loopingItems = new Set(['coal',
+        'coal_block',
         'wheat',
         'diamond',
         'emerald',
@@ -143,15 +141,14 @@ export function initializeLoopingItems() {
         'raiser_armor_trim_smithing_template',
         'sentry_armor_trim_smithing_template',
         'silence_armor_trim_smithing_template',
-        'wayfinder_armor_trim_smithing_template']);
-}
+        'wayfinder_armor_trim_smithing_template'
+    ]);
 
 
 /**
  * Gets a detailed plan for crafting an item considering current inventory
  */
 export function getDetailedCraftingPlan(targetItem, count = 1, current_inventory = {}) {
-    initializeLoopingItems();
     if (!targetItem || count <= 0 || !getItemId(targetItem)) {
         return "Invalid input. Please provide a valid item name and positive count.";
     }
@@ -172,7 +169,16 @@ function isBaseItem(item) {
     return loopingItems.has(item) || getItemCraftingRecipes(item) === null;
 }
 
-function craftItem(item, count, inventory, leftovers, crafted = { required: {}, steps: [], leftovers: {} }) {
+/**
+ * A function to craft an item considering the current inventory and leftovers
+ * @param {*} item 
+ * @param {*} count 
+ * @param {*} inventory 
+ * @param {*} leftovers 
+ * @param {*} crafted 
+ * @returns 
+ */
+export function craftItem(item, count, inventory, leftovers, crafted = { required: {}, steps: [], leftovers: {} }) {
     // Check available inventory and leftovers first
     const availableInv = inventory[item] || 0;
     const availableLeft = leftovers[item] || 0;
@@ -257,7 +263,6 @@ function formatPlan({ required, steps, leftovers }) {
 }
 
 export function getCraftingRequirementsAtDepth(targetItem, count = 1, depth = 0) {
-    initializeLoopingItems(); // Initialize the looping items set
 
     if (!targetItem || count <= 0 || !getItemId(targetItem) || depth < 0) {
         return null;
@@ -309,6 +314,12 @@ function areRequirementsEqual(req1, req2) {
 }
 
 export function getMaxCraftingDepth(targetItem, count = 1, maxSearchDepth = 10) {
+    /**
+     * Returns the maximum depth required to craft the target item
+     * @param {ItemName} targetItem - The item to craft
+     * @param {number} count - The number of items to craft
+     * @param {number} maxSearchDepth - The maximum depth to search for
+     */
     if (!targetItem || count <= 0 || !getItemId(targetItem)) {
         return -1;
     }
@@ -351,4 +362,118 @@ export function getRandomTargetCount() {
     if (rand < 0.8) return 1;
     if (rand < 0.95) return 2;
     return 3;
+}
+
+export function isAchievableItem(item) {
+    // get all the base items needed to craft this recipe
+    if (isBaseItem(item) && achievableBaseItems.includes(item)) return true;
+    const depth = getMaxCraftingDepth(item, 1);
+    const requirements = getCraftingRequirementsAtDepth(item, 1, depth);
+    const baseItems = Object.keys(requirements);
+
+    // check if all the base items are achievable
+    return baseItems.every(baseItem => achievableBaseItems.includes(baseItem));
+
+}
+
+export const achievableBaseItems = [
+    "cobblestone",
+    "cobbled_deepslate",
+    "dirt",
+    "oak_log",
+    "stripped_oak_log",
+    "spruce_log",
+    "stripped_spruce_log",
+    "glass",
+    "sand",
+    "stone",
+    "smooth_stone",
+    "brick",
+    "clay",
+    "charcoal",
+    "basalt",
+    'coal',
+    'raw_iron',
+    'raw_gold',
+    'redstone',
+    'raw_copper',
+    'iron_ingot',
+    'dried_kelp',
+    'gold_ingot',
+    'slime_ball',
+    'black_wool',
+    'copper_ingot',
+    'lapis_lazuli',
+];
+
+export const toolsForItem = {
+    'stone': "wooden_pickaxe",
+    'iron_ore': "stone_pickaxe", 
+    'gold_ore': "iron_pickaxe",
+    'redstone': "iron_pickaxe",
+    'lapis_lazuli_ore': "iron_pickaxe",
+    "iron_ingot": "stone_pickaxe",
+    "gold_ingot": "iron_pickaxe",
+    "redstone": "diamond_pickaxe",
+    "lapis_lazuli": "iron_pickaxe",
+    "copper_ingot": "iron_pickaxe",
+    "raw_iron": "stone_pickaxe",
+    "raw_gold": "iron_pickaxe",
+    "raw_copper": "iron_pickaxe",
+    "coal": "stone_pickaxe",
+}
+
+export const repeatedItems = {
+    'stairs': ["oak_stairs"],
+    'fence': ["oak_fence"],
+    'fence_gate': ["oak_fence_gate"],
+    'door': ["oak_door"],
+    'trapdoor': ["oak_trapdoor"],
+    'button': ["oak_button"],
+    'pressure_plate': ["oak_pressure_plate"],
+    'slab': ["oak_slab"],
+    'chest_boat': ["oak_chest_boat"],
+    'chest_raft': ["oak_chest_raft"],
+    'sign': ["oak_sign"],
+    'hanging_sign': ["oak_hanging_sign"],
+    'boat': ["oak_boat"],
+    'bed': ["purple_bed", "cyan_bed", "magenta_bed", "red_bed"],
+    'candle': ["purple_candle", "cyan_candle", "magenta_candle", "red_candle"],
+    'carpet': ["purple_carpet", "cyan_carpet", "magenta_carpet", "red_carpet"],
+    'concrete': ["purple_concrete", "cyan_concrete", "magenta_concrete", "red_concrete"],
+    'concrete_powder': ["purple_concrete_powder", "cyan_concrete_powder", "magenta_concrete_powder", "red_concrete_powder"],
+    'terracotta': ["purple_terracotta", "cyan_terracotta", "magenta_terracotta", "red_terracotta"],
+    'stained_glass': ["purple_stained_glass", "cyan_stained_glass", "magenta_stained_glass", "red_stained_glass"],
+}
+
+export const foodItems = [
+    "pumpkin_pie", 
+    "bread",
+    "cake",
+    "cookie",
+    "beetroot_soup",
+    "mushroom_stew", 
+    "rabbit_stew"
+]
+
+export function checkIfRepeated(item) {
+    /**
+     * Check if the item is a repeated item
+     * @param {Object} item - The item object
+     */
+    const keys = Object.keys(repeatedItems);
+    for (const key of keys) {
+        if (item.name.includes(key) && !repeatedItems[key].includes(item.name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+export function checkIfFood(item) {
+    /**
+     * Check if the item is a food item
+     * @param {Object} item - The item object
+     */
+    return foodItems.includes(item.name);
 }

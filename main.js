@@ -131,76 +131,27 @@ async function generateMultiagentTasks() {
 // Execute the function
 const tasks = await generateMultiagentTasks().catch(console.error);
 
-const AchievableItems = [
-    "quartz",
+export const achievableBaseItems = [
     "cobblestone",
     "cobbled_deepslate",
-    "pointed_dripstone",
     "dirt",
-    "gravel",
     "oak_log",
     "stripped_oak_log",
     "spruce_log",
-    "stripped_spruce_log",
-    "birch_log",
     "stripped_birch_log",
-    "jungle_log",
-    "stripped_jungle_log",
-    "acacia_log",
-    "stripped_acacia_log",
-    "cherry_log",
-    "stripped_cherry_log",
-    "dark_oak_log",
-    "stripped_dark_oak_log",
-    "mangrove_log",
-    "stripped_mangrove_log",
-    "stripped_bamboo_block",
-    "mud",
-    "mangrove_roots",
     "glass",
     "sand",
-    "green_dye",
-    "moss_block",
     "stone",
     "smooth_stone",
     "brick",
+    "clay",
     "charcoal",
     "basalt",
-    "ice",
-    "carrot",
-    "flint",
-    "feather",
-    "brown_mushroom",
-    "red_mushroom",
-    "apple",
-    "rabbit_hide",
-    "sugar_cane",
-    "orange_tulip",
-    "lilac",
-    "blue_orchid",
-    "dandelion",
-    "sunflower",
-    "peony",
-    "pink_petals",
-    "pink_tulip",
-    "azure_bluet",
-    "oxeye_daisy",
-    "white_tulip",
-    "pitcher_plant",
-    "cornflower",
-    "cocoa_beans",
-    "beetroot",
-    "poppy",
-    "rose_bush",
-    "red_tulip",
-    "egg",
-    "pumpkin",
     'coal',
-    'wheat',
     'raw_iron',
     'raw_gold',
     'redstone',
-    'blue_wool',
+    'wool',
     'packed_mud',
     'raw_copper',
     'iron_ingot',
@@ -209,8 +160,80 @@ const AchievableItems = [
     'slime_ball',
     'black_wool',
     'copper_ingot',
-    'lapis_lazuli'
+    'lapis_lazuli',
 ];
+
+export const neededItems = {
+    'stone': "wooden_pickaxe",
+    'iron_ore': "stone_pickaxe", 
+    'gold_ore': "iron_pickaxe",
+    'redstone': "iron_pickaxe",
+    'lapis_lazuli_ore': "stone_pickaxe",
+    "iron_ingot": "stone_pickaxe",
+    "gold_ingot": "iron_pickaxe",
+    "redstone": "iron_pickaxe",
+    "lapis_lazuli": "stone_pickaxe",
+    "copper_ingot": "stone_pickaxe",
+    "raw_iron": "stone_pickaxe",
+    "raw_gold": "iron_pickaxe",
+    "raw_copper": "stone_pickaxe",
+}
+
+
+export const repeatedItems = {
+    'stairs': ["oak_stairs"],
+    'fence': ["oak_fence"],
+    'fence_gate': ["oak_fence_gate"],
+    'door': ["oak_door"],
+    'trapdoor': ["oak_trapdoor"],
+    'button': ["oak_button"],
+    'pressure_plate': ["oak_pressure_plate"],
+    'slab': ["oak_slab"],
+    'chest_boat': ["oak_chest_boat"],
+    'sign': ["oak_sign"],
+    'hanging_sign': ["oak_hanging_sign"],
+    'boat': ["oak_boat"],
+    'bed': ["purple_bed", "cyan_bed", "magenta_bed", "red_bed"],
+    'candle': ["purple_candle", "cyan_candle", "magenta_candle", "red_candle"],
+    'carpet': ["purple_carpet", "cyan_carpet", "magenta_carpet", "red_carpet"],
+    'concrete': ["purple_concrete", "cyan_concrete", "magenta_concrete", "red_concrete"],
+    'concrete_powder': ["purple_concrete_powder", "cyan_concrete_powder", "magenta_concrete_powder", "red_concrete_powder"],
+    'terracotta': ["purple_terracotta", "cyan_terracotta", "magenta_terracotta", "red_terracotta"],
+    'stained_glass': ["purple_stained_glass", "cyan_stained_glass", "magenta_stained_glass", "red_stained_glass"],
+}
+
+export const foodItems = [
+    "pumpkin_pie", 
+    "bread",
+    "cake",
+    "cookie",
+    "beetroot_soup",
+    "mushroom_stew", 
+    "rabbit_stew"
+]
+
+export function checkIfRepeated(item) {
+    /**
+     * Check if the item is a repeated item
+     * @param {Object} item - The item object
+     */
+    const keys = Object.keys(repeatedItems);
+    for (const key of keys) {
+        if (key.includes(item.name) && !repeatedItems[key].includes(item.name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+export function checkIfFood(item) {
+    /**
+     * Check if the item is a food item
+     * @param {Object} item - The item object
+     */
+    return foodItems.includes(item.name);
+}
+
 
 // console.log('Tasks:', tasks);   
 function filterTasksWithAchievableItems(tasks, AchievableItems) {
