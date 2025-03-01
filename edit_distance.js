@@ -1,3 +1,4 @@
+import { allowedNodeEnvironmentFlags } from 'process';
 import * as mc from './utility_functions.js';
 import fs from 'fs';
 
@@ -280,44 +281,92 @@ function makeTasks(items) {
                     "1": {}
                 };
                 let unattainable = false;
+                let is_wood = false;
+                const wood_stuff = ["stick", "oak_planks", "oak_log"];
                 for (const missing_item of missing_items) {
+                    
                     // TODO: update this craftable check to include all items that can be crafted from attainable items
                     if (!mc.isAchievableItem(missing_item)) {
                         unattainable = true;
                         break;
+                    } else if (wood_stuff.includes(missing_item)) {
+                        is_wood = true;
+                        break;
                     } else {
+                        if (missing_item === "iron_ingot") {
+                            console.log(Object.keys(mc.toolsForItem));
+                        }
                         if (Object.keys(mc.toolsForItem).includes(missing_item)) {
                             // give either agent randomly the required tool
-                            const tool = mc.toolsForItem[missing_item];
-                            const randomInt = Math.floor(Math.random() * 10);
-                            if (randomInt % 2 === 0) {
-                                initialInventory["0"][tool] = 1;
-                            } else {
-                                initialInventory["1"][tool] = 1;
+                            const tools = mc.toolsForItem[missing_item];
+                            // const randomInt = Math.floor(Math.random() * 10);
+                            // if (randomInt % 2 === 0) {
+                            //     initialInventory["0"][tool] = 1;
+                            // } else {
+                            //     initialInventory["1"][tool] = 1;
+                            // }
+                            for (const tool of tools) {
+                                remaining_items.push(tool);
+                                requirements[tool] = 1;
                             }
                         }
                     }
                 }
-                if (unattainable) {
+                if (unattainable || is_wood) {
                     continue;
                 }
-                if (remaining_items.length === 1) {
-                    const count = requirements[remaining_items[0]];
+                for (const idx in remaining_items) {
+                    const count = requirements[remaining_items[idx]];
+                    const item_name = remaining_items[idx];
                     if (count > 1) {
-                        initialInventory["0"][remaining_items[0]] = Math.floor(count / 2) + 1;
-                        initialInventory["1"][remaining_items[0]] = Math.floor(count / 2);
+                        initialInventory["0"][item_name] = Math.floor(count / 2) + 1;
+                        initialInventory["1"][item_name] = Math.floor(count / 2);
                     } else {
-                        initialInventory["1"][remaining_items[0]] = 1;
-                    }
-                } else if (remaining_items.length > 1) {
-                    for (let k = 0; k < remaining_items.length; k++) {
-                        if (k % 2 === 0) {
-                            initialInventory["0"][remaining_items[k]] = requirements[remaining_items[k]];
-                        } else {
-                            initialInventory["1"][remaining_items[k]] = requirements[remaining_items[k]];
+                        const totalInventory_0 = Object.keys(initialInventory["0"]).length;
+                        const totalInventory_1 = Object.keys(initialInventory["1"]).length;
+                        if (totalInventory_0 <= totalInventory_1) {
+                            initialInventory["0"][item_name] = 1;
+                        } else {  
+                            initialInventory["1"][item_name] = 1;
                         }
                     }
                 }
+                let all_wood = false;
+                for (const key in Object.keys(initialInventory)) {
+                    let inventory = initialInventory[key];
+                    let temp_all_wood = true;
+                    for (const item_name of Object.keys(inventory)) {
+                        if (!wood_stuff.includes(item_name)) {
+                            temp_all_wood = false;
+                            break;
+                        }
+                    }
+                    if (temp_all_wood) {
+                        all_wood = true;
+                        break;
+                    }
+                }
+                if (all_wood) {
+                    continue;
+                }
+
+                // if (remaining_items.length === 1) {
+                //     const count = requirements[remaining_items[0]];
+                //     if (count > 1) {
+                //         initialInventory["0"][remaining_items[0]] = Math.floor(count / 2) + 1;
+                //         initialInventory["1"][remaining_items[0]] = Math.floor(count / 2);
+                //     } else {
+                //         initialInventory["1"][remaining_items[0]] = 1;
+                //     }
+                // } else if (remaining_items.length > 1) {
+                //     for (let k = 0; k < remaining_items.length; k++) {
+                //         if (k % 2 === 0) {
+                //             initialInventory["0"][remaining_items[k]] = requirements[remaining_items[k]];
+                //         } else {
+                //             initialInventory["1"][remaining_items[k]] = requirements[remaining_items[k]];
+                //         }
+                //     }
+                // }
                 const includesMisingItems = missing_items.length > 0;
                 let timeout = mc.calculateTimeout(depth, i, includesMisingItems);
                 // TODO: create task for each 

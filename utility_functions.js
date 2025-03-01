@@ -407,20 +407,22 @@ export const achievableBaseItems = [
 ];
 
 export const toolsForItem = {
-    'stone': "wooden_pickaxe",
-    'iron_ore': "stone_pickaxe", 
-    'gold_ore': "iron_pickaxe",
-    'redstone': "iron_pickaxe",
-    'lapis_lazuli_ore': "iron_pickaxe",
-    "iron_ingot": "stone_pickaxe",
-    "gold_ingot": "iron_pickaxe",
-    "redstone": "diamond_pickaxe",
-    "lapis_lazuli": "iron_pickaxe",
-    "copper_ingot": "iron_pickaxe",
-    "raw_iron": "stone_pickaxe",
-    "raw_gold": "iron_pickaxe",
-    "raw_copper": "iron_pickaxe",
-    "coal": "stone_pickaxe",
+    'stone': ["wooden_pickaxe"],
+    'cobblestone': ["wooden_pickaxe"],
+    'iron_ore': ["stone_pickaxe"], 
+    'gold_ore': ["iron_pickaxe"],
+    'redstone': ["iron_pickaxe"],
+    'lapis_lazuli_ore': ["iron_pickaxe"],
+    "iron_ingot": ["stone_pickaxe", "furnace"],
+    "gold_ingot": ["iron_pickaxe", "furnace"],
+    "redstone": ["diamond_pickaxe"],
+    "lapis_lazuli": ["iron_pickaxe"],
+    "copper_ingot": ["iron_pickaxe"],
+    "raw_iron": ["stone_pickaxe"],
+    "raw_gold": ["iron_pickaxe"],
+    "raw_copper": ["iron_pickaxe"],
+    "coal": ["iron_pickaxe"],
+    "black_wool": ["shears"],
 }
 
 export const repeatedItems = {
