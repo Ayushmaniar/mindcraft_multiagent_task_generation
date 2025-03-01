@@ -212,6 +212,87 @@ export const foodItems = [
     "rabbit_stew"
 ]
 
+const AchievableItems = [
+    "quartz",
+    "cobblestone",
+    "cobbled_deepslate",
+    "pointed_dripstone",
+    "dirt",
+    "gravel",
+    "oak_log",
+    "stripped_oak_log",
+    "spruce_log",
+    "stripped_spruce_log",
+    "birch_log",
+    "stripped_birch_log",
+    "jungle_log",
+    "stripped_jungle_log",
+    "acacia_log",
+    "stripped_acacia_log",
+    "cherry_log",
+    "stripped_cherry_log",
+    "dark_oak_log",
+    "stripped_dark_oak_log",
+    "mangrove_log",
+    "stripped_mangrove_log",
+    "stripped_bamboo_block",
+    "mud",
+    "mangrove_roots",
+    "glass",
+    "sand",
+    "green_dye",
+    "moss_block",
+    "stone",
+    "smooth_stone",
+    "brick",
+    "charcoal",
+    "basalt",
+    "ice",
+    "carrot",
+    "flint",
+    "feather",
+    "brown_mushroom",
+    "red_mushroom",
+    "apple",
+    "rabbit_hide",
+    "sugar_cane",
+    "orange_tulip",
+    "lilac",
+    "blue_orchid",
+    "dandelion",
+    "sunflower",
+    "peony",
+    "pink_petals",
+    "pink_tulip",
+    "azure_bluet",
+    "oxeye_daisy",
+    "white_tulip",
+    "pitcher_plant",
+    "cornflower",
+    "cocoa_beans",
+    "beetroot",
+    "poppy",
+    "rose_bush",
+    "red_tulip",
+    "egg",
+    "pumpkin",
+    'coal',
+    'wheat',
+    'raw_iron',
+    'raw_gold',
+    'redstone',
+    'blue_wool',
+    'packed_mud',
+    'raw_copper',
+    'iron_ingot',
+    'dried_kelp',
+    'gold_ingot',
+    'slime_ball',
+    'black_wool',
+    'copper_ingot',
+    'lapis_lazuli'
+];
+
 export function checkIfRepeated(item) {
     /**
      * Check if the item is a repeated item
@@ -241,22 +322,22 @@ function filterTasksWithAchievableItems(tasks, AchievableItems) {
     
     for (const [taskName, task] of Object.entries(tasks)) {
         // console.log('Task:', taskName);
-        const missingResources = Object.keys(task.missing_resources);
-        const missingResourcesInAchievableItems = missingResources.every(resource => AchievableItems.includes(resource));
+        const allResources = Object.keys(task.initial_inventory.andy).concat(Object.keys(task.initial_inventory.randy)).concat(Object.keys(task.missing_resources));
+        const allResourcesInAchievableItems = allResources.every(resource => AchievableItems.includes(resource));
 
         // Filter tasks with achievable base items and chosen depth of 2 or 3
-        if (missingResourcesInAchievableItems && (task.chosen_depth >= 2)) {
+        if (allResourcesInAchievableItems && (task.chosen_depth >= 2)) {
             filteredTasks[taskName] = task;
         }
-
     }
 
     return filteredTasks;
 }
 
-// console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 1));
-// console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 2));
-// console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 3));
+
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 1));
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 2));
+console.log(mc.getCraftingRequirementsAtDepth("jungle_sign", 1, 3));
 
 const filteredTasks = filterTasksWithAchievableItems(tasks, AchievableItems);
 console.log('Filtered tasks:', filteredTasks);
